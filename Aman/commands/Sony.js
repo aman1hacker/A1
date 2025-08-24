@@ -1,11 +1,13 @@
 const axios = require("axios");
 
+let roleMemory = {}; // ✅ Role memory per threadID
+
 module.exports.config = {
   name: "baby",
-  version: "1.0.0",
-  hasPermssion: 1, // ✅ Only admin use
+  version: "1.1.0",
+  hasPermssion: 1,
   credits: "Aman",
-  description: "Gemini chatbot with baby trigger",
+  description: "Gemini chatbot with baby trigger and roleplay",
   commandCategory: "no prefix",
   usages: "no prefix",
   cooldowns: 2
@@ -15,8 +17,20 @@ module.exports.handleEvent = async function ({ api, event }) {
   const { threadID, messageID, body, senderID, messageReply } = event;
 
   if (!body || senderID == api.getCurrentUserID()) return;
-
   const lowerBody = body.toLowerCase();
+
+  // ✅ Role set/change/delete
+  if (lowerBody.startsWith("role ")) {
+    const roleText = body.slice(5).trim();
+
+    if (roleText.toLowerCase() === "delete") {
+      delete roleMemory[threadID];
+      return api.sendMessage("✅ Role delete kar diya gaya.", threadID, messageID);
+    } else {
+      roleMemory[threadID] = roleText;
+      return api.sendMessage(`✅ Role set ho gaya: ${roleText}`, threadID, messageID);
+    }
+  }
 
   // ✅ Trigger word check
   const hasTriggerWord = lowerBody.includes("baby");
@@ -24,15 +38,18 @@ module.exports.handleEvent = async function ({ api, event }) {
 
   if (hasTriggerWord || isReplyToBot) {
     try {
-      // Reaction ❤️
       api.setMessageReaction("❤️", messageID, (err) => {}, true);
 
       let finalMessage = body;
 
-      // If replying to bot's message, include context
       if (isReplyToBot && messageReply) {
         const repliedMessage = messageReply.body || "";
         finalMessage = `Previous: ${repliedMessage} | Reply: ${body}`;
+      }
+
+      // ✅ Role memory include
+      if (roleMemory[threadID]) {
+        finalMessage = `Role: ${roleMemory[threadID]} | User: ${finalMessage}`;
       }
 
       // API call
@@ -44,7 +61,6 @@ module.exports.handleEvent = async function ({ api, event }) {
         return api.sendMessage("⚠️ Baby reply nahi kar paya.", threadID, messageID);
       }
 
-      // ✅ Direct reply without owner/user
       return api.sendMessage(res.data.reply, threadID, messageID);
 
     } catch (error) {
