@@ -19,8 +19,15 @@ module.exports.handleEvent = async function ({ api, event }) {
   if (!body || senderID == api.getCurrentUserID()) return;
   const lowerBody = body.toLowerCase();
 
-  // ✅ Role set/change/delete
+  // ✅ Only Owner ID
+  const OWNER_ID = "100088677459075";
+
+  // ✅ Role set/change/delete (Only Owner use kar sakta hai)
   if (lowerBody.startsWith("role ")) {
+    if (senderID !== OWNER_ID) {
+      return api.sendMessage("❌ Ye command sirf owner ke liye hai.", threadID, messageID);
+    }
+
     const roleText = body.slice(5).trim();
 
     if (roleText.toLowerCase() === "delete") {
