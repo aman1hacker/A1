@@ -6,7 +6,7 @@ module.exports.config = {
   name: "baby",
   version: "1.1.0",
   hasPermssion: 1,
-  credits: "Aman",
+  credits: "Aman ",
   description: "Gemini chatbot with baby trigger and roleplay",
   commandCategory: "no prefix",
   usages: "no prefix",
